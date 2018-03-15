@@ -1,10 +1,9 @@
 import requests, json
-wit_ai_token = "Bearer FREE3BBMQ2OSQ7SOO2COJJV5ZRYDU2YQ"
-r = requests.get('https://api.wit.ai/message?v=09/02/2018&q=%s' % "show my messages",
-                                 headers={"Authorization": wit_ai_token})
 
-print (r.text)############################ remove later
 
-json_resp = json.loads(r.text)
+url = 'https://v3.exchangerate-api.com/bulk/fe12dc4317270c8c24e99e6a/PKR'
 
-print (json_resp)
+# Making our request
+response = requests.get(url)
+curr_json = json.loads(response.text)
+print (curr_json['rates']['GBP'])

@@ -106,6 +106,8 @@ class Bot(object):
                         self.__todo()
                     elif intent == 'get_note':
                         self.__note()
+                    elif intent == 'currency':
+                        self.__currency()
                     else: # No recognized intent
                         self.__text_action("I'm sorry, I don't know about that yet.")
                         return
@@ -244,6 +246,9 @@ class Bot(object):
         todo = self.knowledge.todo()        
         self.__list_action(todo)
 
+    def __currency(self):
+        currency = self.knowledge.find_currency()
+
     def __note(self):
         notes = self.knowledge.note()
         self.__list_action(notes)
@@ -278,7 +283,24 @@ class Bot(object):
         self.__list_action(weather_speech)
 
     def __maps_action(self, nlu_entities=None):
-        pass
+
+        location = None
+        map_type = None
+        if nlu_entities is not None:
+            if 'location' in nlu_entities:
+                location = nlu_entities['location'][0]["value"]
+            if "Map_Type" in nlu_entities:
+                map_type = nlu_entities['Map_Type'][0]["value"]
+
+        if location is not None:
+            maps_url = self.knowledge.get_map_url(location, map_type)
+            maps_action = "Sure. Here's a map of %s." % location
+            body = {'url': maps_url}                       
+            requests.post("http://localhost:8080/image", data=json.dumps(body))
+            self.speech.synthesize_text(maps_action)
+        else:
+            self.__text_action("I'm sorry, I couldn't understand what location you wanted.")
+    
 
 class user():
 

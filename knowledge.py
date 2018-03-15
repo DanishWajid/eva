@@ -74,4 +74,27 @@ class Knowledge(object):
         print("setting alarm")
         r = requests.get(self.apiurl + "/alarm/add/"+alarmtime+"&"+str(self.current_user._id))
 
+    def find_currency(self):   
+
+        # Where pkr is the base currency you want to use
+        url = 'https://v3.exchangerate-api.com/bulk/fe12dc4317270c8c24e99e6a/PKR'
+
+        # Making our request
+        response = requests.get(url)
+        data = response.json()
+
+        # Your JSON object
+        print (data)
+
+    def get_map_url(self, location, map_type=None):
+        if map_type == "satellite":
+            return "http://maps.googleapis.com/maps/api/staticmap?center=%s&zoom=13&scale=false&size=1200x600&maptype=satellite&format=png" % location
+        elif map_type == "terrain":
+            return "http://maps.googleapis.com/maps/api/staticmap?center=%s&zoom=13&scale=false&size=1200x600&maptype=terrain&format=png" % location
+        elif map_type == "hybrid":
+            return "http://maps.googleapis.com/maps/api/staticmap?center=%s&zoom=13&scale=false&size=1200x600&maptype=hybrid&format=png" % location
+        else:
+            return "http://maps.googleapis.com/maps/api/staticmap?center=%s&zoom=13&scale=false&size=1200x600&maptype=roadmap&format=png" % location
+
+
 
