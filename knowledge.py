@@ -5,9 +5,9 @@ import datetime
 
 
 class Knowledge(object):
-    def __init__(self, _current_user, local):
+    def __init__(self, _current_user):
         self.current_user = _current_user
-        self.apiurl = "https://evaapi12.localtunnel.me" if not local else "http://127.0.0.1:5000"
+        self.apiurl = "https://mshahzaib.pythonanywhere.com"
 
 
     def find_weather(self):
@@ -68,33 +68,21 @@ class Knowledge(object):
 
     def add_user(self, user_obj):
         print("adding user")
-        r = requests.get(self.apiurl + "/user/add/"+user_obj._super+"&"+user_obj._face+"&"+user_obj.username+"&"+user_obj.username+"&"+user_obj.password)
+        r = requests.get(self.apiurl + "/user/add/"+user_obj._super+"&face&"+user_obj.username+"&"+user_obj.username+"&"+user_obj.password)
 
     def set_alarm(self, alarmtime):
         print("setting alarm")
         r = requests.get(self.apiurl + "/alarm/add/"+alarmtime+"&"+str(self.current_user._id))
 
-    def find_currency(self):   
+    def update_users_list(self):
+        print("checking user")
+        r = requests.get(self.apiurl + "/user/get")
+        resp = json.loads(r.text)
+        toReturn = []
 
-        # Where pkr is the base currency you want to use
-        url = 'https://v3.exchangerate-api.com/bulk/fe12dc4317270c8c24e99e6a/PKR'
+        for u in resp['users']:
+            toReturn.append(u)
 
-        # Making our request
-        response = requests.get(url)
-        data = response.json()
-
-        # Your JSON object
-        print (data)
-
-    def get_map_url(self, location, map_type=None):
-        if map_type == "satellite":
-            return "http://maps.googleapis.com/maps/api/staticmap?center=%s&zoom=13&scale=false&size=1200x600&maptype=satellite&format=png" % location
-        elif map_type == "terrain":
-            return "http://maps.googleapis.com/maps/api/staticmap?center=%s&zoom=13&scale=false&size=1200x600&maptype=terrain&format=png" % location
-        elif map_type == "hybrid":
-            return "http://maps.googleapis.com/maps/api/staticmap?center=%s&zoom=13&scale=false&size=1200x600&maptype=hybrid&format=png" % location
-        else:
-            return "http://maps.googleapis.com/maps/api/staticmap?center=%s&zoom=13&scale=false&size=1200x600&maptype=roadmap&format=png" % location
-
+        return toReturn
 
 

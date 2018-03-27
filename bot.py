@@ -4,13 +4,13 @@ import sys
 sys.path.append("./")
 
 import requests
-
 from speech import Speech
 import json
 from math import floor
 import traceback
 from nlg import NLG
 from knowledge import Knowledge
+
 
 wit_ai_token = "Bearer FREE3BBMQ2OSQ7SOO2COJJV5ZRYDU2YQ"
 #_id,_super,_face,name,username,password
@@ -41,23 +41,47 @@ logout_state = 16
 class Bot(object):
 
     def __init__(self, user_obj):
-        self.current_user = user_obj
-        self.state = float(normal_state)
-        
-        self.nlg = NLG(user_obj.username)
+        self.current_user = None
+
+        # self.update_current_user(user_obj) ____________________________________________________testing
+
+        self.nlg = NLG(user_obj.username if user_obj is not None else None)
         self.speech = Speech()
-        self.knowledge = Knowledge(user_obj, False)
+        self.knowledge = Knowledge(user_obj)
 
         self.new_user = None
         self.alarm = None
+        self.users = self.knowledge.update_users_list()
+        self.state = float(normal_state)
+        
+        
+    # main loop
+    def run(self):
+        text = self.listen_loop()
+        if text:
+            self.generate_response(text)
 
-    def start(self):
-        while True:
-            recognizer, audio = self.speech.listen_for_audio()
-            text = self.speech.get_text(recognizer, audio)
-            if text:
-                self.generate_response(text)
-                    
+    def listen_loop(self):
+        recognizer, audio = self.speech.listen_for_audio()
+        return self.speech.get_text(recognizer, audio)
+        
+    def check_user_logedin(self):
+        return self.current_user is not None
+
+    def logout_user(self, user_name):
+        # logout the user
+        pass
+
+    def return_users(self):
+        return self.users
+
+    def update_current_user(self, user_obj):
+        self.current_user = user_obj
+
+        print (user_obj._id)
+        print(user_obj._super)
+        print(user_obj.username)
+        print(user_obj.password)
 
     def generate_response(self, text=None):
         if text is not None:
@@ -106,8 +130,6 @@ class Bot(object):
                         self.__todo()
                     elif intent == 'get_note':
                         self.__note()
-                    elif intent == 'currency':
-                        self.__currency()
                     else: # No recognized intent
                         self.__text_action("I'm sorry, I don't know about that yet.")
                         return
@@ -152,7 +174,7 @@ class Bot(object):
                     if self.state == float(add_user_state) + 0.0:
                         if current_user._super == 'yes':
                             self.state = float(add_user_state) + 0.1
-                            self.new_user = user(_id_arg=0, _super_arg="yes", _face_arg="face-eva", username_arg="Danish", password_arg="pass123")
+                            self.new_user = user(_id_arg=0, _super_arg="yes", username_arg="Danish", password_arg="pass123")
                             self.__text_action("Please tell if the new user is a super user")
                             return
                         else:
@@ -246,9 +268,6 @@ class Bot(object):
         todo = self.knowledge.todo()        
         self.__list_action(todo)
 
-    def __currency(self):
-        currency = self.knowledge.find_currency()
-
     def __note(self):
         notes = self.knowledge.note()
         self.__list_action(notes)
@@ -283,36 +302,5 @@ class Bot(object):
         self.__list_action(weather_speech)
 
     def __maps_action(self, nlu_entities=None):
+        pass
 
-        location = None
-        map_type = None
-        if nlu_entities is not None:
-            if 'location' in nlu_entities:
-                location = nlu_entities['location'][0]["value"]
-            if "Map_Type" in nlu_entities:
-                map_type = nlu_entities['Map_Type'][0]["value"]
-
-        if location is not None:
-            maps_url = self.knowledge.get_map_url(location, map_type)
-            maps_action = "Sure. Here's a map of %s." % location
-            body = {'url': maps_url}                       
-            requests.post("http://localhost:8080/image", data=json.dumps(body))
-            self.speech.synthesize_text(maps_action)
-        else:
-            self.__text_action("I'm sorry, I couldn't understand what location you wanted.")
-    
-
-class user():
-
-    def __init__ (self, _id_arg, _super_arg, _face_arg, username_arg, password_arg):
-        self._id = _id_arg
-        self._super = _super_arg
-        self._face = _face_arg
-        self.username = username_arg
-        self.password = password_arg
-
-if __name__ == "__main__":
-    test_user = user(_id_arg=1, _super_arg="yes", _face_arg="face-eva", username_arg="Danish", password_arg="pass123")
-    current_user = test_user
-    bot = Bot(current_user)
-    bot.start()
